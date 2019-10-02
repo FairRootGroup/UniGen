@@ -1,0 +1,113 @@
+
+.PHONY : all dict lib rootmap static lib_static clean clean_obj clean_dict clean_lib
+
+
+# Default target
+all : obj dict lib
+
+
+# ----- Rules for source compilation ----------
+obj : $(objects)
+
+%.o : src/%.cxx include/%.h
+	@echo 'Compiling' src/$*.cxx '...'
+	@$(CXX) $(CXXFLAGS) -c src/$*.cxx -o $@
+# -----------------------------------------------
+
+
+# ------ Rules for dictionary generation --------
+dict : $(TARGET)Dict.cxx
+
+$(TARGET)Dict.cxx : $(incl) include/$(TARGET)LinkDef.h
+	@echo 'Generating dictionary' $@ '...'
+	@rootcint -f $@ -c $(INCDIR) $^
+# -----------------------------------------------
+
+
+# -------------- Library creation ---------------
+lib : $(TOPDIR)/lib/lib$(TARGET).so rootmap
+
+$(TOPDIR)/lib/lib$(TARGET).so : $(objects) $(TARGET)Dict.o
+	@echo 'Creating library' $@ '...'
+	@mkdir -p $(TOPDIR)/lib
+	@$(LD) $^ $(LDFLAGS) --shared -o $@
+
+rootmap: $(TOPDIR)/lib/lib$(TARGET).rootmap
+
+$(TOPDIR)/lib/lib$(TARGET).rootmap: $(TOPDIR)/lib/lib$(TARGET).so
+ifneq ($(strip $(RLIBMAP)),)
+	@echo 'Creating map' $@ '...'
+	@$(RLIBMAP) -r $@ -l $^ $(rlibmap_deps) -c include/$(TARGET)LinkDef.h
+endif
+# -----------------------------------------------
+
+
+# ----------- Dictionary compilation ------------
+$(TARGET)Dict.o : $(TARGET)Dict.cxx $(TARGET)Dict.h
+	@echo 'Compiling '$(TARGET)'Dict.cxx ...'
+	@$(CXX) $(CXXFLAGS) -I. -c $(TARGET)Dict.cxx -o $@
+# -----------------------------------------------
+
+
+static : obj_static dict lib_static
+
+
+# ------- Rules for source compilation ----------
+obj_static : $(objects_static)
+
+%.o.static : src/%.cxx include/%.h
+	@echo 'Compiling' src/$*.cxx '...'
+	@$(CXX) -static -g -pipe -m32 -Wall -W -fPIC -I${TOPDIR}/base/include -I${TOPDIR}/tasks/include -I${ROOTSYS}/include -pthread -o $@ -c src/$*.cxx
+# -----------------------------------------------
+
+
+# -------------- Library creation ---------------
+lib_static : $(TOPDIR)/lib/lib$(TARGET).a
+
+$(TOPDIR)/lib/lib$(TARGET).a : $(objects_static) $(TARGET)Dict.o.static
+	@echo 'Creating static library' $@ '...'
+	@mkdir -p $(TOPDIR)/lib
+	@ar rv $@ $^
+	@ranlib $@
+# -----------------------------------------------
+
+
+# ----------- Dictionary compilation ------------
+$(TARGET)Dict.o.static : $(TARGET)Dict.cxx $(TARGET)Dict.h
+	@echo 'Compiling '$(TARGET)'Dict.cxx ...'
+	@$(CXX) -static -g -pipe -m32 -Wall -W  -fPIC -I. -I${TOPDIR}/base/include -I${ROOTSYS}/include -pthread -o $@ -c $(TARGET)Dict.cxx
+# -----------------------------------------------
+
+
+
+clean : clean_obj clean_dict clean_lib
+
+clean_obj :
+	@echo 'Cleaning objects ...'
+	@rm -f *.o
+	@rm -f *.o.static
+
+clean_dict :
+	@echo 'Cleaning dictionaries ...'
+	@rm -f $(TARGET)Dict*
+
+clean_lib :
+	@echo 'Cleaning libraries ...'
+	@rm -f $(TOPDIR)/lib/lib$(TARGET).so
+	@rm -f $(TOPDIR)/lib/lib$(TARGET).a
+	@rm -f $(TOPDIR)/lib/lib$(TARGET).rootmap
+
+htmldoc :
+	@echo 'Building class documentation...'
+	@root -q -b generateHelp.C
+
+install : install_lib
+
+install_lib : lib
+	@echo 'Installing library ...'
+	mkdir -p -m 0755 $(DESTDIR)/lib
+	install -m 0755 $(TOPDIR)/lib/lib$(TARGET).so $(DESTDIR)/lib
+ifneq ($(strip $(RLIBMAP)),)
+	install -m 0644 $(TOPDIR)/lib/lib$(TARGET).rootmap $(DESTDIR)/lib
+endif
+

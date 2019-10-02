@@ -1,0 +1,69 @@
+
+# Phony targets
+.PHONY : all obj bin static clean clean_bin clean_obj
+
+
+# Default target
+all : obj bin
+
+
+# ------- Rules for source compilation ----------
+obj : $(objects)
+
+%.o : %.cpp
+	@echo 'Compiling' $^ '...'
+	@$(CXX) $(CXXFLAGS) -c $^ -o $@
+# -----------------------------------------------
+
+
+# --- Rules for binaries generation -------------
+bin : $(binaries)
+
+$(TOPDIR)/bin/% : %.o
+	@echo 'Building' $@ '...'
+	@mkdir -p $(TOPDIR)/bin
+	@$(LD) $^ $(LDFLAGS) -o $@
+# -----------------------------------------------
+
+
+static : obj_static bin_static
+
+
+# ------- Rules for source compilation ----------
+obj_static : $(objects_static)
+
+%.o.static : %.cpp
+	@echo 'Compiling' $^ '...'
+	@$(CXX) -static -g -pipe -m32 -Wall -W -fPIC -I${TOPDIR}/base/include -I${ROOTSYS}/include -pthread -o $@ -c $^
+# -----------------------------------------------
+
+
+# --- Rules for binaries generation -------------
+bin_static : $(binaries_static)
+
+$(TOPDIR)/bin/%.static : %.o.static
+	@echo 'Statically building' $@ '...'
+	@mkdir -p $(TOPDIR)/bin
+	@$(LD) -static -static-libgcc -m32 -o $@ $< ${TOPDIR}/lib/libUniGen.a ${ROOTSYS}/lib/libRoot.a -lXpm -lXext -lX11 -lXft -lm -ldl -pthread -rdynamic ${ROOTSYS}/lib/libfreetype.a ${ROOTSYS}/lib/libpcre.a -lncurses
+	@strip $@
+# -----------------------------------------------
+
+
+clean : clean_bin clean_obj
+
+clean_bin :
+	@echo 'Cleaning binaries ...'
+	@rm -f $(TOPDIR)/bin/*
+
+clean_obj :
+	@echo 'Cleaning objects ...'
+	@rm -f *.o
+	@rm -f *.o.static
+
+install : install_bin
+
+install_bin : bin
+	@echo 'Installing binaries ...'
+	mkdir -p -m 0755 $(DESTDIR)/bin
+	install -m 0755 $(binaries) $(DESTDIR)/bin
+
