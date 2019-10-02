@@ -43,7 +43,7 @@ endif
 
 
 # ----------- Dictionary compilation ------------
-$(TARGET)Dict.o : $(TARGET)Dict.cxx $(TARGET)Dict.h
+$(TARGET)Dict.o : $(TARGET)Dict.cxx
 	@echo 'Compiling '$(TARGET)'Dict.cxx ...'
 	@$(CXX) $(CXXFLAGS) -I. -c $(TARGET)Dict.cxx -o $@
 # -----------------------------------------------
