@@ -30,7 +30,7 @@ lib : $(TOPDIR)/lib/lib$(TARGET).so rootmap
 $(TOPDIR)/lib/lib$(TARGET).so : $(objects) $(TARGET)Dict.o
 	@echo 'Creating library' $@ '...'
 	@mkdir -p $(TOPDIR)/lib
-	@$(LD) $^ $(LDFLAGS) --shared -o $@
+	@$(LD) $^ $(dependencies) $(LDFLAGS) --shared -o $@
 
 rootmap: $(TOPDIR)/lib/lib$(TARGET).rootmap
 
