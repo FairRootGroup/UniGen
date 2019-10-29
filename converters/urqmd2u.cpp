@@ -142,12 +142,16 @@ int main(int argc, char *argv[]) {
 
     comment.clear();
     // read 3 lines of options and 4 lines of params
-    for (int i=0; i<7; i++) {
-      getline(in,line); 
+    for (int i=0; i<100; i++) {
+      getline(in,line);
+      if(0 == line.substr(0, 4).compare("pvec"))
+      {
+          break;
+      }
       comment.append(line);
       comment.append("\n");
     }
-    in.ignore(777,'\n'); 
+    //in.ignore(777,'\n'); 
 
     ev->Clear();
     ev->SetEventNr(nr);

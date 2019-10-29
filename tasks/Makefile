@@ -7,6 +7,7 @@ TARGET=Tasks
 INCDIR=-Iinclude -I$(TOPDIR)/base/include
 CXXFLAGS+=$(INCDIR)
 rlibmap_deps=-d $(TOPDIR)/lib/libUniGen.so
+dependencies=-L $(TOPDIR)/lib -lUniGen
 
 # Target files
 sources=$(wildcard src/*.cxx)
