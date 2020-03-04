@@ -72,6 +72,29 @@ UEvent::UEvent(const UEvent& right)
 }
 //--------------------------------------------------------------------
 
+//--------------------------------------------------------------------
+
+UEvent& UEvent::operator =(const UEvent& right) {
+	if(this!=&right){
+		fEventNr  = right.fEventNr;
+		fB        = right.fB;
+		fPhi      = right.fPhi;
+		fNes      = right.fNes;
+		fStepNr   = right.fStepNr;
+		fStepT    = right.fStepT;
+		fNpa      = right.fNpa;
+		fComment  = right.fComment;
+		fParticles->Clear();
+		UParticle* p;
+		for(Int_t i = 0; i < fNpa; i++) {
+			p = (UParticle*) right.fParticles->At(i);
+			new ((*fParticles)[i]) UParticle(*p);
+		}
+	}
+	return *this;
+}
+
+//--------------------------------------------------------------------
 
 //--------------------------------------------------------------------
 UEvent::~UEvent()

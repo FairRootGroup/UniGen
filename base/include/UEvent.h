@@ -43,6 +43,7 @@ class UEvent : public TObject {
  public:
   UEvent();
   UEvent(const UEvent& right);
+  UEvent& operator =  (const UEvent& right);
   virtual ~UEvent();
   void Print(Option_t* option = "");
   inline Int_t    GetEventNr() const {return fEventNr;}
