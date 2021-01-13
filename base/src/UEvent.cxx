@@ -234,6 +234,7 @@ void UEvent::RemoveAt(Int_t i)
   // Array is automaticaly compressed afterwards, mind the indexing
   fParticles->RemoveAt(i);
   fParticles->Compress();
+  fNpa -= 1;
 }
 //--------------------------------------------------------------------
 
