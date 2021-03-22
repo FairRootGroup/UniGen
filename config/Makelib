@@ -38,6 +38,7 @@ rootmap: $(TOPDIR)/lib/lib$(TARGET).rootmap
 $(TOPDIR)/lib/lib$(TARGET).rootmap: $(TOPDIR)/lib/lib$(TARGET).so
 ifneq ($(strip $(RLIBMAP)),)
 	@echo 'Creating map' $@ '...'
+	@mkdir -p $(TOPDIR)/lib
 	@$(RLIBMAP) -r $@ -l $^ $(rlibmap_deps) -c include/$(TARGET)LinkDef.h
 endif
 # -----------------------------------------------
