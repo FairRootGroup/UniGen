@@ -37,7 +37,8 @@ using namespace std;
 UParticle::UParticle()
 {
   // Default constructor
-  fIndex = fPdg = fStatus = fParent = fParentDecay = fMate = fDecay = 0;
+  fIndex = fPdg = fStatus = fParentDecay = fMate = fDecay = 0;
+  fParent = -1;
   fChild[0] = fChild[1] = 0;
   fPx = fPy = fPz = fE = 0.;
   fX = fY = fZ = fT = 0.;
