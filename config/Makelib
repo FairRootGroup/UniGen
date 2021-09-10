@@ -20,7 +20,7 @@ dict : $(TARGET)Dict.cxx
 
 $(TARGET)Dict.cxx : $(incl) include/$(TARGET)LinkDef.h
 	@echo 'Generating dictionary' $@ '...'
-  @mkdir -p $(TOPDIR)/lib
+	@mkdir -p $(TOPDIR)/lib
 	@rootcint -f $@ -rmf $(TOPDIR)/lib/lib$(TARGET).rootmap -rml $(TOPDIR)/lib/lib$(TARGET).so -c $(INCDIR) $^
 	@cp $(TARGET)Dict_rdict.pcm $(TOPDIR)/lib
 # -----------------------------------------------
@@ -112,5 +112,5 @@ install_lib : lib
 	mkdir -p -m 0755 $(DESTDIR)/lib
 	install -m 0755 $(TOPDIR)/lib/lib$(TARGET).so $(DESTDIR)/lib
 	install -m 0644 $(TOPDIR)/lib/lib$(TARGET).rootmap $(DESTDIR)/lib
-  install -m 0644 $(TOPDIR)/lib/$(TARGET)Dict_rdict.pcm $(DESTDIR)/lib
+	install -m 0644 $(TOPDIR)/lib/$(TARGET)Dict_rdict.pcm $(DESTDIR)/lib
 
