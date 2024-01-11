@@ -45,7 +45,7 @@ class UEvent : public TObject {
   UEvent(const UEvent& right);
   UEvent& operator =  (const UEvent& right);
   virtual ~UEvent();
-  void Print(Option_t* option = "");
+  void Print(Option_t* option = "") const;
   inline Int_t    GetEventNr() const {return fEventNr;}
   inline Double_t GetB()       const {return fB;}
   inline Double_t GetPhi()     const {return fPhi;}
@@ -77,7 +77,7 @@ class UEvent : public TObject {
 		   TLorentzVector mom, TLorentzVector pos,
 		   Double_t weight);
   void AddParticle(const UParticle& particle);
-  void Clear();
+  void Clear(Option_t* option="");
   void RemoveAt(Int_t i);
 
   ClassDef(UEvent, 2);

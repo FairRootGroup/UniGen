@@ -36,9 +36,6 @@
 using namespace std;
 
 
-const Double_t kProtonMass = 0.938271998;
-
-
 //--------------------------------------------------------------------
 int main(int argc, char *argv[])
 {

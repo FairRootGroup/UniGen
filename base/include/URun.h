@@ -52,7 +52,7 @@ class URun : public TNamed {
        Double_t pTarg, Double_t bMin, Double_t bMax, Int_t bWeight,
        Double_t phiMin, Double_t phiMax, Double_t sigma, Int_t nEvents);
   virtual ~URun();
-  void Print(Option_t* option = "");
+  void Print(Option_t* option = "") const;
   void GetGenerator(TString& generator) {generator = fGenerator;}
   void GetComment(TString& comment)     {comment = fComment;}
   void GetDecayer(TString& decayer)     {decayer = fDecayer;}

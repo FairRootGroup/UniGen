@@ -29,7 +29,4 @@
 #pragma link C++ class UManager+;
 #pragma link C++ class UTask+;
 
-#pragma link C++ global gROOT;
-#pragma link C++ global gEnv;
-
 #endif
