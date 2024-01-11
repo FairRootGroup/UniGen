@@ -19,10 +19,10 @@
 #ifndef UEVENT_H
 #define UEVENT_H
 
+#include "TString.h"
 #include "TObject.h"
 #include "TLorentzVector.h"
 
-class TString;
 class TClonesArray;
 class UParticle;
 

@@ -20,7 +20,6 @@
 using namespace std;
 
 #include "TObject.h"
-#include "TString.h"
 #include "TClonesArray.h"
 
 #include "UParticle.h"
