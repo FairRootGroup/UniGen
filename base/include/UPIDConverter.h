@@ -31,6 +31,7 @@ class UPIDConverter : public TNamed {
     ePDG = -1,
     ePluto,
     eUrQMD,
+    eUrQMDv4,
     eWerner
   } EConvention;
 

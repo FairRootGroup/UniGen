@@ -22,7 +22,7 @@
 #include <TSystem.h>
 
 #include <fstream>
-
+#include <string>
 
 ClassImp(UPIDConverter);
 
@@ -91,6 +91,9 @@ void UPIDConverter::LoadConversionTable(const EConvention pidType)
     case (eUrQMD):
       dataFileName += "urqmd_pdg.dat";
       break;
+    case (eUrQMDv4):
+      dataFileName += "urqmdv4_pdg.dat";
+      break;
     case (eWerner):
       // VENUS, NEXUS, EPOS
       dataFileName += "werner_pdg.dat";
@@ -116,12 +119,37 @@ void UPIDConverter::LoadConversionTable(const EConvention pidType)
   std::map<Int_t, Int_t>& conversionTable = fConversionTables[pidType];
   Int_t localPid;
   Int_t pdgPid;
-  while (1) {
-    // FIXME: we might want to make this more robust against malformed input
-    if (fin.eof())
-      break;
-    fin >> localPid >> pdgPid;
-    conversionTable[localPid] = pdgPid;
+  // The file format for UrQMD 4.0 has changed, so we need to handle the
+  // input differently
+  if (pidType == eUrQMDv4) {
+    while (1) {
+      int iso3;
+      std::string name;
+      // FIXME: we might want to make this more robust against malformed input
+      if (fin.eof())
+        break;
+      fin >> localPid >> iso3 >> pdgPid >> name;
+      int id;
+      // calculate out of the urqmd particle and the isospin value a unique
+      // value whcih is then used to map urqmd ids to pdg ids.
+      // The same conversion is used when accessing the infor from the map.
+      if (localPid >= 0) {
+        id = 1000 * (iso3 + 3) + localPid;
+      }
+      else {
+        id = -1000 * (iso3 + 3) + localPid;
+      }
+      conversionTable[id] = pdgPid;
+    }
+  }
+  else {
+    while (1) {
+      // FIXME: we might want to make this more robust against malformed input
+      if (fin.eof())
+        break;
+      fin >> localPid >> pdgPid;
+      conversionTable[localPid] = pdgPid;
+    }
   }
   fin.close();
 
