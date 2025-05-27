@@ -29,10 +29,12 @@
 //
 // D.Miskowiec, February 2006
 ///////////////////////////////////////////////////////////////////////////////
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <map>
+#include <string>
 
 #include <TFile.h>
 #include <TTree.h>
@@ -87,6 +89,34 @@ int trapco(int ityp, int ichg)
   return UPIDConverter::Instance()->GetPDGCode(id, UPIDConverter::eUrQMD);
 }
 /*****************************************************************************/
+int converturqmd4(int ityp, int iso3)
+{
+  // translate UrQMD pid code to pdg code
+
+  /* UrQMD PIDs are in fact composite - a particle is fully defined by the
+     type specifier (ityp), the charge (ichg) and in case of baryons, the
+     third component isospin (iso3). For simplicity, our conversion tables
+     collapse these into a single number
+     as follows:
+      - propagate the sign of ityp (particle-antiparticle distinction for
+        baryons, strangeness-antistrangeness distinction for mesons) to that
+        of the stored value;
+      - shift the iso3 range from -3..3 to 0..6 to make sure it doesn't
+        interfere with the above;
+      - multiply shifted iso3 value by +/-1000 and add it to type.
+        The latter is guaranteed to be smaller than 1000. The largest used
+        value is 222. That way no ambiguities
+        occur. */
+  int id;
+  if (ityp >= 0)
+    id = 1000 * (iso3 + 3) + ityp;
+  else
+    id = -1000 * (iso3 + 3) + ityp;
+
+  /* This will return 0 for unknown input values. */
+  return UPIDConverter::Instance()->GetPDGCode(id, UPIDConverter::eUrQMDv4);
+}
+/*****************************************************************************/
 int main(int argc, char *argv[]) {
 
   ifstream in;
@@ -95,6 +125,7 @@ int main(int argc, char *argv[]) {
   char c;
   int nevents;
   string dust;
+  UPIDConverter::EConvention urqmdtype;
 
   URun *ru = 0;
   string version, comment;
@@ -130,16 +161,43 @@ int main(int argc, char *argv[]) {
     if ((n%bunch)==0) cout << "event "  << setw(5) << n << endl;
     string line;
 
-    in >> dust >> dust >> version >> dust >> dust;
-    in >> dust >> filetype >> dust >> dust >> dust >> aproj >> zproj;
-    in >> dust >> dust >> dust >> atarg >> ztarg; 
+    in >> dust >> dust >> version >> dust >> dust >> dust >> filetype;
+
+    //extract major and minor versions
+    int int_version = atoi(version.c_str());
+    int major_version = int_version/10000;
+    int minor_version = (int_version%10000)/100;
+    // UrQMD 4.0 wrote to output in the begining a wrong version info
+    // All version info from 3.5 onward are used as UrQMD 4.0
+    if (major_version >=3 && minor_version >=5 ) {
+      major_version = 4;
+      minor_version = 0;
+    }
+
+    in  >> dust >> dust >> dust >> aproj >> zproj >> dust >> dust >> dust >> atarg >> ztarg;
     in >> dust >> dust >> dust >> beta >> dust >> dust;
     in >> dust >> b >> bmin >> bmax >> dust >> sigma;
+    if (major_version == 4) {
+      in >> dust >> dust >> dust >> dust >> dust >> dust >> dust >> dust >> dust >> dust >> dust >> dust;
+    }
     in >> dust >> eos >> dust >> elab >> dust >> sqrts >> dust >> plab;
     in >> dust >> nr >> dust >> dust >> dust;
     in >> dust >> dust >> time >> dust >> dtime;
     in.ignore(777,'\n'); // ignore the rest of the line
 
+    // After we know the version we can already load the proper conversion tables
+    if (major_version == 3) {
+      urqmdtype = UPIDConverter::eUrQMD;
+    } 
+    else if (major_version == 4) {
+      urqmdtype = UPIDConverter::eUrQMDv4;
+    }
+    else {
+      cerr<<"Error: UrQmd version "<< version << "not known"<<endl;
+      exit(-1);
+    }    
+
+    
     comment.clear();
     // read 3 lines of options and 4 lines of params
     for (int i=0; i<100; i++) {
@@ -186,8 +244,15 @@ int main(int argc, char *argv[]) {
 	}
 	if (in.fail()) bomb("while reading tracks");
 	status=parent_decay=decay=child[0]=child[1]=0;
-  parent=-1;
-	ev->AddParticle(i, trapco(ityp, ichg), status, parent,
+        parent=-1;
+        int pdg_id{0};
+        if (urqmdtype == UPIDConverter::eUrQMD) {
+          pdg_id=trapco(ityp, ichg);
+        }
+        else if ( urqmdtype == UPIDConverter::eUrQMDv4 ) {
+          pdg_id=converturqmd4(ityp, iso3);
+        }
+	ev->AddParticle(i, pdg_id, status, parent,
 			parent_decay, mate-1, decay, child,
 			px, py, pz, e, x, y, z, t, weight);
       }
@@ -211,6 +276,8 @@ int main(int argc, char *argv[]) {
   double gamma = 1.0/sqrt(1-beta*beta); 
   double pproj = gamma*(+pcm-beta*ecm);
   double ptarg = gamma*(-pcm-beta*ecm);
+  std::cout << "pproj: " << pproj << "\n";
+  std::cout << "beta: " << beta << "\n";
   ru = new URun(generator.data(), comment.data(), 
 		aproj, zproj, pproj, 
 		atarg, ztarg, ptarg, 
